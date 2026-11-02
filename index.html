@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LinkVault — Personal Bookmark Organizer</title>
+<meta name="description" content="Save, organize, search, and manage your favorite website links in one place. No account needed. Your data stays in your browser.">
+<link rel="stylesheet" href="style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<div class="app">
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="Toggle navigation" aria-expanded="true" aria-controls="sidebar">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+  </button>
+  <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h7l5 5v13H6zM13 3v5h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span>
+      <span class="brand-name">LinkVault</span>
+    </div>
+    <nav class="nav" aria-label="Views">
+      <button class="nav-btn active" data-view="dashboard" type="button">Dashboard</button>
+      <button class="nav-btn" data-view="all" type="button">All Bookmarks</button>
+      <button class="nav-btn" data-view="collections" type="button">Collections</button>
+      <button class="nav-btn" data-view="settings" type="button">Settings</button>
+    </nav>
+    <p class="sidebar-note">Your bookmarks live only in this browser. Export a backup from Settings before clearing browser data.</p>
+    <button class="btn primary full" id="addBtnSidebar" type="button">Add bookmark</button>
+  </aside>
+
+  <div class="content">
+    <header class="topbar">
+      <label class="search-box" for="searchInput">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.5-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <span class="sr-only">Search bookmarks</span>
+        <input id="searchInput" type="search" placeholder="Search title, URL, description, or collection" autocomplete="off">
+      </label>
+      <div class="top-actions">
+        <button class="btn" id="themeBtn" type="button" aria-label="Toggle dark and light theme">Dark mode</button>
+        <button class="btn primary" id="addBtnTop" type="button">Add bookmark</button>
+      </div>
+    </header>
+
+    <main id="main">
+      <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+      <!-- Dashboard -->
+      <section class="view active" id="view-dashboard" aria-labelledby="dashHeading">
+        <h1 id="dashHeading">Dashboard</h1>
+        <p class="lead">Everything you saved, at a glance.</p>
+        <div class="stats" role="list">
+          <div class="stat" role="listitem"><span class="stat-num" id="statTotal">0</span><span class="stat-label">Saved links</span></div>
+          <div class="stat" role="listitem"><span class="stat-num" id="statFav">0</span><span class="stat-label">Favorites</span></div>
+          <div class="stat" role="listitem"><span class="stat-num" id="statColl">0</span><span class="stat-label">Collections</span></div>
+          <div class="stat" role="listitem"><span class="stat-num" id="statOpened">0</span><span class="stat-label">Opened links</span></div>
+        </div>
+        <h2>Recently added</h2>
+        <div class="grid" id="recentAdded"></div>
+        <h2>Recently opened</h2>
+        <div class="grid" id="recentOpened"></div>
+        <h2>Collections</h2>
+        <div class="collection-chips" id="dashCollections"></div>
+      </section>
+
+      <!-- All bookmarks -->
+      <section class="view" id="view-all" aria-labelledby="allHeading" hidden>
+        <h1 id="allHeading">All Bookmarks</h1>
+        <p class="lead">Search, filter, and sort every saved link.</p>
+        <div class="filters">
+          <label>Collection
+            <select id="filterCollection"><option value="">All collections</option><option value="__none">No collection</option></select>
+          </label>
+          <label>Sort
+            <select id="sortSelect">
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
+              <option value="alpha">Alphabetical</option>
+              <option value="opened">Recently opened</option>
+            </select>
+          </label>
+          <label class="check-label"><input type="checkbox" id="favOnly"> Favorites only</label>
+          <p class="result-count" id="resultCount" aria-live="polite"></p>
+        </div>
+        <div class="grid" id="allGrid"></div>
+      </section>
+
+      <!-- Collections -->
+      <section class="view" id="view-collections" aria-labelledby="collHeading" hidden>
+        <h1 id="collHeading">Collections</h1>
+        <p class="lead">Group bookmarks by topic, project, or purpose.</p>
+        <form class="inline-form" id="collectionForm">
+          <label for="newCollectionName">New collection name</label>
+          <input id="newCollectionName" type="text" maxlength="80" placeholder="For example: Reading" required>
+          <button class="btn primary" type="submit">Create collection</button>
+          <p class="form-error" id="collectionError" role="alert" hidden></p>
+        </form>
+        <div class="collection-list" id="collectionList"></div>
+      </section>
+
+      <!-- Settings -->
+      <section class="view" id="view-settings" aria-labelledby="setHeading" hidden>
+        <h1 id="setHeading">Settings</h1>
+        <p class="lead">Theme, backup, and storage. Nothing leaves your browser except the favicon lookup for a saved site.</p>
+        <h2>Theme</h2>
+        <div class="theme-row" role="group" aria-label="Theme">
+          <button class="btn" id="themeLight" type="button">Light</button>
+          <button class="btn" id="themeDark" type="button">Dark</button>
+        </div>
+        <h2>Backup</h2>
+        <p>Export downloads a JSON file with all bookmarks and collections. Import validates the whole file first and only replaces your data when the file is valid.</p>
+        <div class="btn-row">
+          <button class="btn primary" id="exportBtn" type="button">Export backup (JSON)</button>
+          <label class="btn" for="importFile">Import backup</label>
+          <input class="sr-only" id="importFile" type="file" accept=".json,application/json">
+        </div>
+        <p class="form-error" id="importError" role="alert" hidden></p>
+        <p class="form-ok" id="importOk" role="status" hidden></p>
+        <h2>Storage</h2>
+        <p id="storageInfo">Storage estimate not available in this browser.</p>
+        <button class="btn danger" id="clearBtn" type="button">Delete all data</button>
+        <p class="muted">This removes every bookmark, collection, and setting stored by LinkVault in this browser. Export a backup first if you want to keep them.</p>
+      </section>
+    </main>
+    <footer class="footer"><p>LinkVault stores data in IndexedDB on this device only. No account, no server, no tracking.</p></footer>
+  </div>
+</div>
+
+<dialog id="bookmarkDialog" aria-labelledby="dialogTitle">
+  <form id="bookmarkForm" method="dialog">
+    <h2 id="dialogTitle">Add bookmark</h2>
+    <label for="bmUrl">Website URL</label>
+    <input id="bmUrl" type="url" placeholder="https://example.com/article" required autocomplete="off">
+    <label for="bmTitle">Title <span class="muted">(optional, defaults to the site name)</span></label>
+    <input id="bmTitle" type="text" maxlength="200" autocomplete="off">
+    <label for="bmDesc">Description <span class="muted">(optional)</span></label>
+    <textarea id="bmDesc" rows="3" maxlength="500"></textarea>
+    <label for="bmCollection">Collection</label>
+    <select id="bmCollection"><option value="">No collection</option></select>
+    <label class="check-label"><input type="checkbox" id="bmFav"> Mark as favorite</label>
+    <p class="form-error" id="bmError" role="alert" hidden></p>
+    <p class="form-warn" id="bmWarn" role="alert" hidden></p>
+    <div class="btn-row">
+      <button class="btn primary" type="submit" id="bmSubmit">Save bookmark</button>
+      <button class="btn" type="button" id="bmCancel">Cancel</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="confirmDialog" aria-labelledby="confirmTitle">
+  <form method="dialog">
+    <h2 id="confirmTitle">Delete?</h2>
+    <p id="confirmText"></p>
+    <div class="btn-row">
+      <button class="btn danger" id="confirmYes" type="button" value="yes">Delete</button>
+      <button class="btn" id="confirmNo" type="button" value="cancel">Cancel</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="renameDialog" aria-labelledby="renameTitle">
+  <form id="renameForm" method="dialog">
+    <h2 id="renameTitle">Rename collection</h2>
+    <label for="renameInput">Collection name</label>
+    <input id="renameInput" type="text" maxlength="80" required>
+    <p class="form-error" id="renameError" role="alert" hidden></p>
+    <div class="btn-row">
+      <button class="btn primary" type="submit">Save name</button>
+      <button class="btn" type="button" id="renameCancel">Cancel</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="app.js"></script>
+</body>
+</html>
